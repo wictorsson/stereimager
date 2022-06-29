@@ -58,6 +58,7 @@ public:
 private:
  
     juce::LinearSmoothedValue<float> widthValue;
+    juce::LinearSmoothedValue<float> gainValue;
 
     
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

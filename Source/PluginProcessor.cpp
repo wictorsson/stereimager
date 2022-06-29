@@ -23,11 +23,13 @@ StereoimagerAudioProcessor::StereoimagerAudioProcessor()
 #endif
 {
     apvts.addParameterListener("width", this);
+    apvts.addParameterListener("gain", this);
 }
 
 StereoimagerAudioProcessor::~StereoimagerAudioProcessor()
 {
     apvts.removeParameterListener("width", this);
+    apvts.removeParameterListener("gain", this);
 }
 
 
@@ -35,9 +37,11 @@ StereoimagerAudioProcessor::~StereoimagerAudioProcessor()
 juce::AudioProcessorValueTreeState::ParameterLayout StereoimagerAudioProcessor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
-    auto width = std::make_unique<juce::AudioParameterFloat> ("width","Width", juce::NormalisableRange<float>(0,2),1);
+    auto width = std::make_unique<juce::AudioParameterFloat> ("width","Width", juce::NormalisableRange<float>(0,1.2, 0.01, 3.8017),1);
     params.push_back(std::move(width));
     
+    auto gain = std::make_unique<juce::AudioParameterFloat> ("gain", "Gain", juce::NormalisableRange<float>(-24, 6, 0.1),0);
+    params.push_back(std::move(gain));
     return {params.begin(), params.end()};
 }
 
@@ -45,9 +49,13 @@ void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterI
 {
     if (parameterID == "width")
     {
-        //widthValue = newValue;
         widthValue.setTargetValue(newValue);
-        DBG(newValue);
+    }
+    
+    if (parameterID == "gain")
+    {
+        gainValue.setTargetValue(newValue);
+      ;
     }
 }
 
@@ -118,6 +126,7 @@ void StereoimagerAudioProcessor::changeProgramName (int index, const juce::Strin
 void StereoimagerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     widthValue.reset(sampleRate, 0.03);
+    gainValue.reset(sampleRate, 0.03);
 }
 
 void StereoimagerAudioProcessor::releaseResources()
@@ -181,6 +190,7 @@ void StereoimagerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         for(int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
         //Create mid side channels
+            
             const auto side = 0.5 * (channelDataL[sample] - channelDataR[sample]);
             const auto mid = 0.5 * (channelDataL[sample] + channelDataR[sample]);
 
@@ -192,16 +202,19 @@ void StereoimagerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             
             if(widthValue.getNextValue() >= 1.0)
             {
-                const auto volumeScale = juce::jmap(widthValue.getNextValue(),1.0f, 2.0f, 0.0f, 6.0f);
-                channelDataL[sample] = newLeft * juce::Decibels::decibelsToGain(volumeScale);
-                channelDataR[sample] = newRight * juce::Decibels::decibelsToGain(volumeScale);
+                const auto widthScale = juce::jmap(widthValue.getNextValue(),1.0f, 2.0f, 0.0f, 6.0f);
+                channelDataL[sample] = newLeft * juce::Decibels::decibelsToGain(widthScale) * juce::Decibels::decibelsToGain(gainValue.getNextValue());
+                channelDataR[sample] = newRight * juce::Decibels::decibelsToGain(widthScale)* juce::Decibels::decibelsToGain(gainValue.getNextValue());;
             }
             else
             {
-                const auto volumeScale = juce::jmap(widthValue.getNextValue(),1.0f, 0.0f, 0.0f, -6.0f);
-                channelDataL[sample] = newLeft * juce::Decibels::decibelsToGain(volumeScale);
-                channelDataR[sample] = newRight * juce::Decibels::decibelsToGain(volumeScale);
+                const auto widthScale = juce::jmap(widthValue.getNextValue(),1.0f, 0.0f, 0.0f, -6.0f);
+                channelDataL[sample] = newLeft * juce::Decibels::decibelsToGain(widthScale) * juce::Decibels::decibelsToGain(gainValue.getNextValue());
+                channelDataR[sample] = newRight * juce::Decibels::decibelsToGain(widthScale) * juce::Decibels::decibelsToGain(gainValue.getNextValue());
             }
+            
+            //gain
+            
         }
         
         
