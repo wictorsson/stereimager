@@ -25,6 +25,11 @@ public:
     void resized() override;
 
 private:
+    
+    juce::Slider widthSlider;
+    juce::Slider gainSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> widthSliderAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gainSliderAttach;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     StereoimagerAudioProcessor& audioProcessor;

@@ -57,7 +57,7 @@ public:
     
 private:
  
-    juce::LinearSmoothedValue<float> widthValue;
+    juce::LinearSmoothedValue<float> widthValue{1};
     juce::LinearSmoothedValue<float> gainValue;
 
     

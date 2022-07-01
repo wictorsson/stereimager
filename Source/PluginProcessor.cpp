@@ -37,7 +37,8 @@ StereoimagerAudioProcessor::~StereoimagerAudioProcessor()
 juce::AudioProcessorValueTreeState::ParameterLayout StereoimagerAudioProcessor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
-    auto width = std::make_unique<juce::AudioParameterFloat> ("width","Width", juce::NormalisableRange<float>(0,1.2, 0.01, 3.8017),1);
+    
+    auto width = std::make_unique<juce::AudioParameterFloat> ("width","Width", juce::NormalisableRange<float>(-100,100, 1),0);
     params.push_back(std::move(width));
     
     auto gain = std::make_unique<juce::AudioParameterFloat> ("gain", "Gain", juce::NormalisableRange<float>(-24, 6, 0.1),0);
@@ -49,13 +50,26 @@ void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterI
 {
     if (parameterID == "width")
     {
-        widthValue.setTargetValue(newValue);
+        //Kolla hur det blir utan att ha rört parametern!
+        // if newValue > 0 jmappa 1-1.2, annars mappa 0-1.0
+        float scaledValue;
+        if(newValue > 0)
+        {
+            scaledValue = juce::jmap(newValue, 0.0f, 100.0f, 1.0f, 1.2f);
+        }
+        else
+        {
+            scaledValue = juce::jmap(newValue, -100.0f, 0.0f, 0.0f, 1.0f);
+        }
+        
+        widthValue.setTargetValue(scaledValue);
     }
     
     if (parameterID == "gain")
     {
-        gainValue.setTargetValue(newValue);
-      ;
+        // two channels
+        gainValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
+      
     }
 }
 
@@ -127,6 +141,21 @@ void StereoimagerAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
 {
     widthValue.reset(sampleRate, 0.03);
     gainValue.reset(sampleRate, 0.03);
+    
+    gainValue = juce::Decibels::decibelsToGain(static_cast<float>(*apvts.getRawParameterValue("gain")));
+    
+  
+    float newValue = static_cast<float>(*apvts.getRawParameterValue("width"));
+    if(newValue > 0)
+       {
+        widthValue = juce::jmap(newValue, 0.0f, 100.0f, 1.0f, 1.2f);
+        }
+    else
+    {
+        widthValue = juce::jmap(newValue, -100.0f, 0.0f, 0.0f, 1.0f);
+    }
+   
+    
 }
 
 void StereoimagerAudioProcessor::releaseResources()
@@ -167,21 +196,11 @@ void StereoimagerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
+ 
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
         auto* channelDataL = buffer.getWritePointer (0);
@@ -200,20 +219,19 @@ void StereoimagerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             const auto newLeft = midNew + sideNew;
             const auto newRight = midNew - sideNew;
             
+            auto gain = gainValue.getNextValue();
             if(widthValue.getNextValue() >= 1.0)
             {
-                const auto widthScale = juce::jmap(widthValue.getNextValue(),1.0f, 2.0f, 0.0f, 6.0f);
-                channelDataL[sample] = newLeft * juce::Decibels::decibelsToGain(widthScale) * juce::Decibels::decibelsToGain(gainValue.getNextValue());
-                channelDataR[sample] = newRight * juce::Decibels::decibelsToGain(widthScale)* juce::Decibels::decibelsToGain(gainValue.getNextValue());;
+                const auto widthScale = juce::Decibels::decibelsToGain(juce::jmap(widthValue.getNextValue(),1.0f, 2.0f, 0.0f, 6.0f));
+                channelDataL[sample] = newLeft * widthScale * gain;
+                channelDataR[sample] = newRight * widthScale * gain;
             }
             else
             {
-                const auto widthScale = juce::jmap(widthValue.getNextValue(),1.0f, 0.0f, 0.0f, -6.0f);
-                channelDataL[sample] = newLeft * juce::Decibels::decibelsToGain(widthScale) * juce::Decibels::decibelsToGain(gainValue.getNextValue());
-                channelDataR[sample] = newRight * juce::Decibels::decibelsToGain(widthScale) * juce::Decibels::decibelsToGain(gainValue.getNextValue());
+                const auto widthScale = juce::Decibels::decibelsToGain(juce::jmap(widthValue.getNextValue(),1.0f, 0.0f, 0.0f, -6.0f));
+                channelDataL[sample] = newLeft * widthScale * gain;
+                channelDataR[sample] = newRight * widthScale * gain;
             }
-            
-            //gain
             
         }
         
@@ -230,23 +248,30 @@ bool StereoimagerAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* StereoimagerAudioProcessor::createEditor()
 {
-    //return new StereoimagerAudioProcessorEditor (*this);
+    return new StereoimagerAudioProcessorEditor (*this);
     
-    return new juce::GenericAudioProcessorEditor(*this);
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
 void StereoimagerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+   
+    //Save
+    juce::MemoryOutputStream stream(destData, false);
+    apvts.state.writeToStream(stream);
+    
 }
 
 void StereoimagerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    //call the save state
+    auto tree = juce::ValueTree::readFromData(data, size_t (sizeInBytes));
+    
+    if(tree.isValid())
+    {
+        apvts.state = tree;
+    }
 }
 
 //==============================================================================
