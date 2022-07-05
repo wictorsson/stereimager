@@ -9,6 +9,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+
 //==============================================================================
 StereoimagerAudioProcessor::StereoimagerAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations

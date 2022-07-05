@@ -4,6 +4,13 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginManufacturer="F.W"
               pluginName="fw stereoimager">
   <MAINGROUP id="nxmhFz" name="stereoimager">
+    <GROUP id="{4C1EED0A-620B-9921-A781-575D752482AB}" name="LookAndFeel">
+      <FILE id="C5Y9Es" name="LAFgainSlider.cpp" compile="1" resource="0"
+            file="Assets/LAFgainSlider.cpp"/>
+      <FILE id="h0ackQ" name="LAFgainSlider.h" compile="0" resource="0" file="Assets/LAFgainSlider.h"/>
+      <FILE id="UyrX0e" name="LAFSlider.cpp" compile="1" resource="0" file="Assets/LAFSlider.cpp"/>
+      <FILE id="W3AUaV" name="LAFSlider.h" compile="0" resource="0" file="Assets/LAFSlider.h"/>
+    </GROUP>
     <GROUP id="{7FB90758-4DF8-1EFB-34E7-4450B15A77A2}" name="Source">
       <FILE id="yQ1Fli" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

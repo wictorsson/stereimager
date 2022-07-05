@@ -10,6 +10,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "../Assets/LAFSlider.h"
+#include "../Assets/LAFgainSlider.h"
 
 //==============================================================================
 /**
@@ -34,5 +36,7 @@ private:
     // access the processor object that created it.
     StereoimagerAudioProcessor& audioProcessor;
 
+    CustomSlider lafSlider;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StereoimagerAudioProcessorEditor)
 };
