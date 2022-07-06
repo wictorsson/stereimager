@@ -19,27 +19,47 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
     setResizable (true, true);
     const float ratio = 4.0/ 3.0;
     setResizeLimits (350,  juce::roundToInt (350.0 / ratio),
-                         550, juce::roundToInt (500.0 / ratio));
+                         550, juce::roundToInt (550.0 / ratio));
     getConstrainer()->setFixedAspectRatio (ratio);
     setSize (450, 450/ratio);
     
-    widthSlider.setSliderStyle(juce::Slider::LinearVertical);
+    widthBand1Slider.setSliderStyle(juce::Slider::LinearVertical);
+    widthBand1Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(widthBand1Slider);
+    widthBand1Slider.setLookAndFeel(&lafSlider);
+    widthBand1Slider.setDoubleClickReturnValue(true, 0.0f);
+    widthSliderAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "width1", widthBand1Slider);
     
-    widthSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    addAndMakeVisible(widthSlider);
+    crossOverSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+    crossOverSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 50, 20);
+    crossOverSlider.setLookAndFeel(&lafCrossOv);
+    addAndMakeVisible(crossOverSlider);
     
-    widthSlider.setLookAndFeel(&lafSlider);
-    widthSlider.setDoubleClickReturnValue(true, 0.0f);
+   // crossOverSlider.setLookAndFeel(&lafSlider);
+    crossOverSlider.setDoubleClickReturnValue(true, 0.0f);
+    crossoverSliderAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "crossover", crossOverSlider);
+    
+    widthBand2Slider.setSliderStyle(juce::Slider::LinearVertical);
+    widthBand2Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(widthBand2Slider);
+    widthBand2Slider.setLookAndFeel(&lafSlider);
+    widthBand2Slider.setDoubleClickReturnValue(true, 0.0f);
+    width2SliderAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "width2", widthBand2Slider);
+   
 
-    widthSliderAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "width", widthSlider);
+    gainSliderLeft.setSliderStyle(juce::Slider::LinearVertical);
+    gainSliderLeft.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(gainSliderLeft);
+    gainSliderLeft.setLookAndFeel(&lafGain);
+    gainSliderLeft.setDoubleClickReturnValue(true, 0.0f);
+    gainSliderLeftAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "gainLeft", gainSliderLeft);
     
-    
-    gainSlider.setSliderStyle(juce::Slider::LinearVertical);
-    gainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    addAndMakeVisible(gainSlider);
-    gainSlider.setDoubleClickReturnValue(true, 0.0f);
-
-    gainSliderAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "gain", gainSlider);
+    gainSliderRight.setSliderStyle(juce::Slider::LinearVertical);
+    gainSliderRight.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(gainSliderRight);
+    gainSliderRight.setLookAndFeel(&lafGain);
+    gainSliderRight.setDoubleClickReturnValue(true, 0.0f);
+    gainSliderRightAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "gainRight", gainSliderRight);
     
 }
 
@@ -60,11 +80,20 @@ void StereoimagerAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    auto leftMargin = getWidth() * 0.1;
-    auto topMargin = getHeight() * 0.1;
-    //auto bottomMargin = getHeight() * 0.25;
-    auto sliderSize = getWidth() * 0.4;
+    auto widthMargin = getWidth() * 0.1;
+    auto heightMargin = getHeight() * 0.1;
+  
+    auto topRow = (getHeight() - heightMargin * 2) * 0.4;
+    //Slider width - 8 objects
+    auto sliderWidth = (getWidth() - heightMargin * 2) * 0.125;
+    auto sliderHeight = getHeight() - topRow - heightMargin;
     
-    widthSlider.setBounds(leftMargin, topMargin, sliderSize, sliderSize );
-    gainSlider.setBounds(widthSlider.getX() + widthSlider.getWidth(), topMargin, sliderSize, sliderSize);
+    crossOverSlider.setBounds(widthMargin, heightMargin, sliderWidth * 4, sliderHeight * 0.2 );
+    
+    widthBand1Slider.setBounds(widthMargin, topRow, sliderWidth, sliderHeight );
+    widthBand2Slider.setBounds(sliderWidth * 3, topRow, sliderWidth, sliderHeight);
+    
+    gainSliderLeft.setBounds(sliderWidth * 6, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
+    // position 7 = level meters
+    gainSliderRight.setBounds(sliderWidth * 8, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
 }

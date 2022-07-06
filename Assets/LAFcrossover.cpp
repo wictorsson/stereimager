@@ -1,22 +1,24 @@
 /*
   ==============================================================================
-    LAFSlider.cpp
-    Created: 4 Jul 2022 6:28:42pm
+
+    LAFcrossover.cpp
+    Created: 6 Jul 2022 5:35:00pm
     Author:  Fredrik Wictorsson
+
   ==============================================================================
 */
 
-#include "LAFSlider.h"
+#include "LAFcrossover.h"
 
 
-CustomSlider::CustomSlider()
+CustomCrossover::CustomCrossover()
 {
     
 }
 
 
 
-void CustomSlider::drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height,
+void CustomCrossover::drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height,
                                        float sliderPos,
                                        float minSliderPos,
                                        float maxSliderPos,
@@ -73,20 +75,20 @@ void CustomSlider::drawLinearSlider (juce::Graphics& g, int x, int y, int width,
             
         }
 
-        auto thumbWidth = getSliderThumbRadius (slider) ;
+        auto thumbWidth = getSliderThumbRadius (slider) * 3 ;
 
-        // Changed filled path to go from 0 - value
-        valueTrack.startNewSubPath (startPoint.x, height * 0.5f + thumbWidth);
-        valueTrack.lineTo (maxPoint);
-       
-        g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f));
-        
-        g.strokePath (valueTrack, { trackWidth, juce::PathStrokeType::curved, juce::PathStrokeType::rounded });
-
+        // Delete filled path
+//        valueTrack.startNewSubPath (startPoint.x, startPoint.x - thumbWidth);
+//        valueTrack.lineTo (maxPoint);
+//
+//        g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f));
+//
+//        g.strokePath (valueTrack, { trackWidth, juce::PathStrokeType::curved, juce::PathStrokeType::rounded });
+//   void fillRect (int x, int y, int width, int height) const;
         if (! isTwoVal)
         {
             g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f));
-            g.fillEllipse (juce::Rectangle<float> (static_cast<float> (thumbWidth), static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint));
+            g.fillRoundedRectangle (juce::Rectangle<float> (static_cast<float> (thumbWidth) * 0.1, static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint), 3);
         }
 
         if (isTwoVal || isThreeVal)
@@ -116,3 +118,4 @@ void CustomSlider::drawLinearSlider (juce::Graphics& g, int x, int y, int width,
         }
     }
 }
+

@@ -23,14 +23,22 @@ StereoimagerAudioProcessor::StereoimagerAudioProcessor()
                        ), apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
 #endif
 {
-    apvts.addParameterListener("width", this);
-    apvts.addParameterListener("gain", this);
+    apvts.addParameterListener("width1", this);
+    apvts.addParameterListener("width2", this);
+    apvts.addParameterListener("crossover", this);
+    apvts.addParameterListener("gainLeft", this);
+    apvts.addParameterListener("gainRight", this);
+   
 }
 
 StereoimagerAudioProcessor::~StereoimagerAudioProcessor()
 {
-    apvts.removeParameterListener("width", this);
-    apvts.removeParameterListener("gain", this);
+    apvts.removeParameterListener("width1", this);
+    apvts.removeParameterListener("width2", this);
+    apvts.removeParameterListener("crossover", this);
+    apvts.removeParameterListener("gainLeft", this);
+    apvts.removeParameterListener("gainRight", this);
+   
 }
 
 
@@ -39,17 +47,28 @@ juce::AudioProcessorValueTreeState::ParameterLayout StereoimagerAudioProcessor::
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
-    auto width = std::make_unique<juce::AudioParameterFloat> ("width","Width", juce::NormalisableRange<float>(-100,100, 1),0);
+    auto width = std::make_unique<juce::AudioParameterFloat> ("width1","Width1", juce::NormalisableRange<float>(-100,100, 1),0);
     params.push_back(std::move(width));
     
-    auto gain = std::make_unique<juce::AudioParameterFloat> ("gain", "Gain", juce::NormalisableRange<float>(-24, 6, 0.1),0);
-    params.push_back(std::move(gain));
+    auto width2 = std::make_unique<juce::AudioParameterFloat> ("width2","Width2", juce::NormalisableRange<float>(-100,100, 1),0);
+    params.push_back(std::move(width2));
+    
+    auto crossOv = std::make_unique<juce::AudioParameterFloat> ("crossover","Crossover", juce::NormalisableRange<float>(0.0,20000.0, 1.0),10000.0);
+    params.push_back(std::move(crossOv));
+    
+    auto gainLeft = std::make_unique<juce::AudioParameterFloat> ("gainLeft", "GainLeft", juce::NormalisableRange<float>(-24, 6, 0.1),0);
+    params.push_back(std::move(gainLeft));
+    
+    auto gainRight = std::make_unique<juce::AudioParameterFloat> ("gainRight", "GainRight", juce::NormalisableRange<float>(-24, 6, 0.1),0);
+    params.push_back(std::move(gainRight));
+    
+    
     return {params.begin(), params.end()};
 }
 
 void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterID, float newValue)
 {
-    if (parameterID == "width")
+    if (parameterID == "width1")
     {
         //Kolla hur det blir utan att ha rört parametern!
         // if newValue > 0 jmappa 1-1.2, annars mappa 0-1.0
@@ -63,15 +82,48 @@ void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterI
             scaledValue = juce::jmap(newValue, -100.0f, 0.0f, 0.0f, 1.0f);
         }
         
-        widthValue.setTargetValue(scaledValue);
+        width1Value.setTargetValue(scaledValue);
     }
     
-    if (parameterID == "gain")
+    if (parameterID == "width2")
     {
-        // two channels
-        gainValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
+        //Kolla hur det blir utan att ha rört parametern!
+        // if newValue > 0 jmappa 1-1.2, annars mappa 0-1.0
+        float scaledValue;
+        if(newValue > 0)
+        {
+            scaledValue = juce::jmap(newValue, 0.0f, 100.0f, 1.0f, 1.2f);
+        }
+        else
+        {
+            scaledValue = juce::jmap(newValue, -100.0f, 0.0f, 0.0f, 1.0f);
+        }
+        
+        width2Value.setTargetValue(scaledValue);
+    }
+    
+    if (parameterID == "crossover")
+    {
+
+        crossoverValue = newValue;
       
     }
+    
+    // If sats - if bool chained do both
+    if (parameterID == "gainLeft")
+    {
+        // two channels
+        gainLeftValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
+      
+    }
+    
+    if (parameterID == "gainRight")
+    {
+        // two channels
+        gainRightValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
+      
+    }
+    
 }
 
 
@@ -140,20 +192,47 @@ void StereoimagerAudioProcessor::changeProgramName (int index, const juce::Strin
 //==============================================================================
 void StereoimagerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    widthValue.reset(sampleRate, 0.03);
-    gainValue.reset(sampleRate, 0.03);
     
-    gainValue = juce::Decibels::decibelsToGain(static_cast<float>(*apvts.getRawParameterValue("gain")));
+    //update parameters, call function()
+    width1Value.reset(sampleRate, 0.03);
+    width2Value.reset(sampleRate, 0.03);
+    gainLeftValue.reset(sampleRate, 0.03);
+    gainRightValue.reset(sampleRate, 0.03);
+    crossOverFilterModule.reset();
+    crossoverValue = *apvts.getRawParameterValue("crossover");
+    juce::dsp::ProcessSpec spec;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.sampleRate = sampleRate;
+    spec.numChannels = getTotalNumOutputChannels();
+    crossOverFilterModule.prepare(spec);
+    crossOverFilterModule2.prepare(spec);
+   
+    crossOverFilterModule.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    crossOverFilterModule2.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+ 
+    gainLeftValue = juce::Decibels::decibelsToGain(static_cast<float>(*apvts.getRawParameterValue("gainLeft")));
+    gainRightValue = juce::Decibels::decibelsToGain(static_cast<float>(*apvts.getRawParameterValue("gainRight")));
+
     
   
-    float newValue = static_cast<float>(*apvts.getRawParameterValue("width"));
+    float newValue = static_cast<float>(*apvts.getRawParameterValue("width1"));
     if(newValue > 0)
        {
-        widthValue = juce::jmap(newValue, 0.0f, 100.0f, 1.0f, 1.2f);
+        width1Value = juce::jmap(newValue, 0.0f, 100.0f, 1.0f, 1.2f);
         }
     else
     {
-        widthValue = juce::jmap(newValue, -100.0f, 0.0f, 0.0f, 1.0f);
+        width1Value = juce::jmap(newValue, -100.0f, 0.0f, 0.0f, 1.0f);
+    }
+    
+    float newValue2 = static_cast<float>(*apvts.getRawParameterValue("width2"));
+    if(newValue > 0)
+       {
+        width2Value = juce::jmap(newValue2, 0.0f, 100.0f, 1.0f, 1.2f);
+        }
+    else
+    {
+        width2Value = juce::jmap(newValue2, -100.0f, 0.0f, 0.0f, 1.0f);
     }
    
     
@@ -211,29 +290,43 @@ void StereoimagerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         {
         //Create mid side channels
             
-            const auto side = 0.5 * (channelDataL[sample] - channelDataR[sample]);
-            const auto mid = 0.5 * (channelDataL[sample] + channelDataR[sample]);
-
-            const auto sideNew = widthValue.getNextValue() * side;
-            const auto midNew = (2 - widthValue.getNextValue()) * mid;
-
-            const auto newLeft = midNew + sideNew;
-            const auto newRight = midNew - sideNew;
+            const auto sideBand1Raw = 0.5 * (channelDataL[sample] - channelDataR[sample]);
+            const auto midBand1Raw = 0.5 * (channelDataL[sample] + channelDataR[sample]);
             
-            auto gain = gainValue.getNextValue();
-            if(widthValue.getNextValue() >= 1.0)
-            {
-                const auto widthScale = juce::Decibels::decibelsToGain(juce::jmap(widthValue.getNextValue(),1.0f, 2.0f, 0.0f, 6.0f));
-                channelDataL[sample] = newLeft * widthScale * gain;
-                channelDataR[sample] = newRight * widthScale * gain;
-            }
-            else
-            {
-                const auto widthScale = juce::Decibels::decibelsToGain(juce::jmap(widthValue.getNextValue(),1.0f, 0.0f, 0.0f, -6.0f));
-                channelDataL[sample] = newLeft * widthScale * gain;
-                channelDataR[sample] = newRight * widthScale * gain;
-            }
+            crossOverFilterModule.setCutoffFrequency(crossoverValue);
+            crossOverFilterModule2.setCutoffFrequency(crossoverValue);
+            const auto sideBand1 = crossOverFilterModule.processSample(channel,sideBand1Raw);
+            const auto midBand1 = crossOverFilterModule2.processSample(channel,midBand1Raw);
+ 
+            const auto sideNewBand1 = width1Value.getNextValue() * sideBand1;
+            const auto midNewBand1 = (2 - width1Value.getNextValue()) * midBand1;
+
+            const auto newLeftBand1 = midNewBand1 + sideNewBand1;
+            const auto newRightBand1 = midNewBand1 - sideNewBand1;
             
+            //
+            
+            const auto sideBand2 = sideBand1Raw - sideBand1;
+            const auto midBand2 = midBand1Raw - midBand1;
+
+            const auto sideNewBand2 = width2Value.getNextValue() * sideBand2;
+            const auto midNewBand2 = (2 - width2Value.getNextValue()) * midBand2;
+
+            const auto newLeftBand2 = midNewBand2 + sideNewBand2;
+            const auto newRightBand2 = midNewBand2 - sideNewBand2;
+            
+            auto gainLeft = gainLeftValue.getNextValue();
+            auto gainRight = gainRightValue.getNextValue();
+         
+        
+            const auto widthScale = juce::Decibels::decibelsToGain(juce::jmap(width1Value.getNextValue(),1.0f, 2.0f, 0.0f, 6.0f));
+            const auto widthScaleNeg = juce::Decibels::decibelsToGain(juce::jmap(width2Value.getNextValue(),1.0f, 0.0f, 0.0f, -6.0f));
+   
+            // Implement gain later!!!!
+
+            channelDataL[sample] =  (newLeftBand1 * widthScale + newLeftBand2 * widthScaleNeg) * gainLeft;
+            channelDataR[sample] =  (newRightBand1 * widthScale + newRightBand2 * widthScaleNeg) * gainRight;
+   
         }
         
         

@@ -57,9 +57,16 @@ public:
     
 private:
  
-    juce::LinearSmoothedValue<float> widthValue{1};
-    juce::LinearSmoothedValue<float> gainValue;
+    juce::LinearSmoothedValue<float> width1Value{1};
+    juce::LinearSmoothedValue<float> width2Value{1};
+  
+    float crossoverValue;
+    float lp;
+    juce::LinearSmoothedValue<float> gainLeftValue;
+    juce::LinearSmoothedValue<float> gainRightValue;
 
+    juce::dsp::LinkwitzRileyFilter<float> crossOverFilterModule;
+    juce::dsp::LinkwitzRileyFilter<float> crossOverFilterModule2;
     
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     

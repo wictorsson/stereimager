@@ -74,23 +74,20 @@ void CustomGainSlider::drawLinearSlider (juce::Graphics& g, int x, int y, int wi
             maxPoint = { kx, ky };
         }
 
-        auto thumbWidth = getSliderThumbRadius (slider) * 1.2;
+        auto thumbWidth = getSliderThumbRadius (slider) * 2;
 
         // make two paths here, from 0 - 100. and from 0 - (- 100)
         valueTrack.startNewSubPath (minPoint);
         valueTrack.lineTo (isThreeVal ? thumbPoint : maxPoint);
-        if(type == "gain")
-        g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f));
-        else
-        {
-            g.setColour (slider.findColour (juce::Slider::trackColourId));
-        }
+
+        g.setColour (slider.findColour (juce::Slider::trackColourId));
+      
         g.strokePath (valueTrack, { trackWidth, juce::PathStrokeType::curved, juce::PathStrokeType::rounded });
 
         if (! isTwoVal)
         {
-            g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f));
-            g.fillEllipse (juce::Rectangle<float> (static_cast<float> (thumbWidth), static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint));
+            g.setColour (juce::Colour::fromFloatRGBA(0.94f, 0.94f, 0.96f, 1.0f));
+            g.fillRoundedRectangle (juce::Rectangle<float> (static_cast<float> (thumbWidth) * 0.4 , static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint), 3);
         }
 
         if (isTwoVal || isThreeVal)

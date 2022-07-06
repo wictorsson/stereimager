@@ -5,6 +5,9 @@
               pluginName="fw stereoimager">
   <MAINGROUP id="nxmhFz" name="stereoimager">
     <GROUP id="{4C1EED0A-620B-9921-A781-575D752482AB}" name="LookAndFeel">
+      <FILE id="AqgYq9" name="LAFcrossover.cpp" compile="1" resource="0"
+            file="Assets/LAFcrossover.cpp"/>
+      <FILE id="DMVeu2" name="LAFcrossover.h" compile="0" resource="0" file="Assets/LAFcrossover.h"/>
       <FILE id="C5Y9Es" name="LAFgainSlider.cpp" compile="1" resource="0"
             file="Assets/LAFgainSlider.cpp"/>
       <FILE id="h0ackQ" name="LAFgainSlider.h" compile="0" resource="0" file="Assets/LAFgainSlider.h"/>
@@ -41,6 +44,7 @@
         <MODULEPATH id="juce_graphics" path="../../../../../Applications/JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../../../../Applications/JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../../../../Applications/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../../../Applications/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
@@ -54,6 +58,7 @@
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
