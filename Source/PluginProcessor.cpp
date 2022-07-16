@@ -28,7 +28,9 @@ StereoimagerAudioProcessor::StereoimagerAudioProcessor()
     apvts.addParameterListener("crossover", this);
     apvts.addParameterListener("gainLeft", this);
     apvts.addParameterListener("gainRight", this);
-   
+    apvts.addParameterListener("linkGain", this);
+    apvts.addParameterListener("gainLinked", this);
+  
 }
 
 StereoimagerAudioProcessor::~StereoimagerAudioProcessor()
@@ -38,7 +40,11 @@ StereoimagerAudioProcessor::~StereoimagerAudioProcessor()
     apvts.removeParameterListener("crossover", this);
     apvts.removeParameterListener("gainLeft", this);
     apvts.removeParameterListener("gainRight", this);
-   
+    apvts.removeParameterListener("linkGain", this);
+    
+    apvts.removeParameterListener("gainLinked", this);
+
+
 }
 
 
@@ -47,13 +53,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout StereoimagerAudioProcessor::
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
-    auto width = std::make_unique<juce::AudioParameterFloat> ("width1","Width1", juce::NormalisableRange<float>(-100,100, 1),0);
+    auto width = std::make_unique<juce::AudioParameterFloat> ("width1","Width1", juce::NormalisableRange<float>(-100,100, 1.0),0);
     params.push_back(std::move(width));
     
-    auto width2 = std::make_unique<juce::AudioParameterFloat> ("width2","Width2", juce::NormalisableRange<float>(-100,100, 1),0);
+    auto width2 = std::make_unique<juce::AudioParameterFloat> ("width2","Width2", juce::NormalisableRange<float>(-100,100, 1.0),0);
     params.push_back(std::move(width2));
     
-    auto crossOv = std::make_unique<juce::AudioParameterFloat> ("crossover","Crossover", juce::NormalisableRange<float>(0.0,20000.0, 1.0),10000.0);
+    auto crossOv = std::make_unique<juce::AudioParameterFloat> ("crossover","Crossover", juce::NormalisableRange<float>(0.0,20000.0, 1.0, 0.2),1000.0);
     params.push_back(std::move(crossOv));
     
     auto gainLeft = std::make_unique<juce::AudioParameterFloat> ("gainLeft", "GainLeft", juce::NormalisableRange<float>(-24, 6, 0.1),0);
@@ -62,6 +68,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout StereoimagerAudioProcessor::
     auto gainRight = std::make_unique<juce::AudioParameterFloat> ("gainRight", "GainRight", juce::NormalisableRange<float>(-24, 6, 0.1),0);
     params.push_back(std::move(gainRight));
     
+    auto gainLinked = std::make_unique<juce::AudioParameterFloat> ("gainLinked", "GainLinked", juce::NormalisableRange<float>(-24, 6, 0.1),0);
+    params.push_back(std::move(gainLinked));
+    
+    
+    auto linkGain = std::make_unique<juce::AudioParameterBool>("linkGain", "LinkGain", true);
+    params.push_back(std::move(linkGain));
     
     return {params.begin(), params.end()};
 }
@@ -70,8 +82,6 @@ void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterI
 {
     if (parameterID == "width1")
     {
-        //Kolla hur det blir utan att ha rört parametern!
-        // if newValue > 0 jmappa 1-1.2, annars mappa 0-1.0
         float scaledValue;
         if(newValue > 0)
         {
@@ -87,8 +97,6 @@ void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterI
     
     if (parameterID == "width2")
     {
-        //Kolla hur det blir utan att ha rört parametern!
-        // if newValue > 0 jmappa 1-1.2, annars mappa 0-1.0
         float scaledValue;
         if(newValue > 0)
         {
@@ -109,19 +117,39 @@ void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterI
       
     }
     
-    // If sats - if bool chained do both
-    if (parameterID == "gainLeft")
+    if(linkGainButton)
     {
-        // two channels
+    if( parameterID == "gainLinked")
+    {
+    
+
+        
         gainLeftValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
-      
+                   gainRightValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
+      }
+     }
+
+     else if(!linkGainButton)
+    {
+        
+    if (parameterID == "gainLeft")
+        {
+         
+        gainLeftValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
+            
+        }
+    
+        if(parameterID == "gainRight")
+            {
+            gainRightValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
+      }        
     }
     
-    if (parameterID == "gainRight")
+    
+    if (parameterID == "linkGain")
     {
-        // two channels
-        gainRightValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
-      
+        linkGainButton = newValue;
+  
     }
     
 }
@@ -192,12 +220,17 @@ void StereoimagerAudioProcessor::changeProgramName (int index, const juce::Strin
 //==============================================================================
 void StereoimagerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    
+    rmsLevelLeft.reset(sampleRate, 0.7f);
+    rmsLevelRight.reset(sampleRate, 0.7f);
+    rmsLevelRight.setTargetValue(-100.0f);
+    rmsLevelLeft.setTargetValue(-100.0f);
     //update parameters, call function()
     width1Value.reset(sampleRate, 0.03);
     width2Value.reset(sampleRate, 0.03);
     gainLeftValue.reset(sampleRate, 0.03);
     gainRightValue.reset(sampleRate, 0.03);
+    gainLeftValueLinked.reset(sampleRate, 0.03);
+    gainRightValueLinked.reset(sampleRate, 0.03);
     crossOverFilterModule.reset();
     crossoverValue = *apvts.getRawParameterValue("crossover");
     juce::dsp::ProcessSpec spec;
@@ -206,12 +239,17 @@ void StereoimagerAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
     spec.numChannels = getTotalNumOutputChannels();
     crossOverFilterModule.prepare(spec);
     crossOverFilterModule2.prepare(spec);
+    linkGainButton = *apvts.getRawParameterValue("linkGain");
    
     crossOverFilterModule.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
-    crossOverFilterModule2.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    crossOverFilterModule2.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
  
     gainLeftValue = juce::Decibels::decibelsToGain(static_cast<float>(*apvts.getRawParameterValue("gainLeft")));
     gainRightValue = juce::Decibels::decibelsToGain(static_cast<float>(*apvts.getRawParameterValue("gainRight")));
+    
+    gainRightValueLinked = juce::Decibels::decibelsToGain(static_cast<float>(*apvts.getRawParameterValue("gainLinked")));
+    
+    gainLeftValueLinked = juce::Decibels::decibelsToGain(static_cast<float>(*apvts.getRawParameterValue("gainLinked")));
 
     
   
@@ -332,6 +370,30 @@ void StereoimagerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         
         // ..do something to the data...
     }
+    rmsLevelLeft.skip(buffer.getNumSamples());
+    rmsLevelRight.skip(buffer.getNumSamples());
+    {
+
+        auto value = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
+
+        if (value < rmsLevelLeft.getCurrentValue())
+            rmsLevelLeft.setTargetValue(value);
+        else
+            rmsLevelLeft.setCurrentAndTargetValue(value);
+
+    }
+
+    {
+        auto value = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
+
+
+        if (value < rmsLevelRight.getCurrentValue())
+            rmsLevelRight.setTargetValue(value);
+        else
+            rmsLevelRight.setCurrentAndTargetValue(value);
+
+    }
+    
 }
 
 //==============================================================================
@@ -374,3 +436,16 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new StereoimagerAudioProcessor();
 }
+
+
+float StereoimagerAudioProcessor::getRmsValue(const int channel) const
+{
+    jassert(channel == 0 || channel == 1);
+    if (channel == 0)
+        return rmsLevelLeft.getCurrentValue();
+    if (channel == 1)
+        return rmsLevelRight.getCurrentValue();
+    return 0.0f;
+    
+}
+

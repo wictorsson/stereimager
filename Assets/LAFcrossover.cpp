@@ -77,18 +77,11 @@ void CustomCrossover::drawLinearSlider (juce::Graphics& g, int x, int y, int wid
 
         auto thumbWidth = getSliderThumbRadius (slider) * 3 ;
 
-        // Delete filled path
-//        valueTrack.startNewSubPath (startPoint.x, startPoint.x - thumbWidth);
-//        valueTrack.lineTo (maxPoint);
-//
-//        g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f));
-//
-//        g.strokePath (valueTrack, { trackWidth, juce::PathStrokeType::curved, juce::PathStrokeType::rounded });
-//   void fillRect (int x, int y, int width, int height) const;
+      
         if (! isTwoVal)
         {
             g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f));
-            g.fillRoundedRectangle (juce::Rectangle<float> (static_cast<float> (thumbWidth) * 0.1, static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint), 3);
+            g.fillRoundedRectangle (juce::Rectangle<float> (static_cast<float> (thumbWidth) * 0.2, static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint), 3);
         }
 
         if (isTwoVal || isThreeVal)

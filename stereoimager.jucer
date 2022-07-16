@@ -4,6 +4,9 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginManufacturer="F.W"
               pluginName="fw stereoimager">
   <MAINGROUP id="nxmhFz" name="stereoimager">
+    <GROUP id="{6356182F-9879-F8D6-DBCE-07497BB04C00}" name="Assets">
+      <FILE id="S70aNG" name="VLevelMeter.h" compile="0" resource="0" file="Assets/VLevelMeter.h"/>
+    </GROUP>
     <GROUP id="{4C1EED0A-620B-9921-A781-575D752482AB}" name="LookAndFeel">
       <FILE id="AqgYq9" name="LAFcrossover.cpp" compile="1" resource="0"
             file="Assets/LAFcrossover.cpp"/>

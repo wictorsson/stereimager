@@ -54,7 +54,11 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     juce::AudioProcessorValueTreeState apvts;
+   
+    bool linkGainButton{true};
     
+    float getRmsValue(const int channel) const;
+  
 private:
  
     juce::LinearSmoothedValue<float> width1Value{1};
@@ -62,8 +66,17 @@ private:
   
     float crossoverValue;
     float lp;
+    bool isBusy{false};
+    bool isBusyR{false};
+    
+    juce::LinearSmoothedValue<float> rmsLevelLeft, rmsLevelRight;
+    
     juce::LinearSmoothedValue<float> gainLeftValue;
     juce::LinearSmoothedValue<float> gainRightValue;
+    // ta bort?
+    juce::LinearSmoothedValue<float> gainLeftValueLinked;
+    juce::LinearSmoothedValue<float> gainRightValueLinked;
+    juce::LinearSmoothedValue<float> gainLinked;
 
     juce::dsp::LinkwitzRileyFilter<float> crossOverFilterModule;
     juce::dsp::LinkwitzRileyFilter<float> crossOverFilterModule2;
