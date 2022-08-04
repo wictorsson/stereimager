@@ -73,8 +73,6 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
     band2Label.attachToComponent(& widthBand2Slider, true);
     band2Label.setJustificationType(juce::Justification::bottomRight);
    
-
-
     gainSliderLeft.setSliderStyle(juce::Slider::LinearVertical);
     gainSliderLeft.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
     addAndMakeVisible(gainSliderLeft);
@@ -83,8 +81,7 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
     gainSliderLeftAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "gainLeft", gainSliderLeft);
     gainSliderLeft.setVisible(false);
 
-  
-    
+
     gainSliderRight.setSliderStyle(juce::Slider::LinearVertical);
     gainSliderRight.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
     addAndMakeVisible(gainSliderRight);
@@ -108,10 +105,18 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
     gainSliderRightLinked.setDoubleClickReturnValue(true, 0.0f);
     gainSliderLinkedRAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "gainLinked", gainSliderRightLinked);
     
-    addAndMakeVisible(linkButtonGain);
+    
+    auto knob_image = juce::Drawable::createFromImageData (BinaryData::link_svg, BinaryData::link_svgSize);
+    auto knob_imageBroken = juce::Drawable::createFromImageData (BinaryData::brokenlink_svg, BinaryData::brokenlink_svgSize);
+    
+    
+    linkButtonGain.setImages(knob_imageBroken.get(),knob_imageBroken.get(),knob_imageBroken.get(), knob_imageBroken.get(), knob_image.get(), knob_image.get(), knob_image.get(), knob_image.get());
+    
     linkButtonGain.setToggleState(true, juce::NotificationType::dontSendNotification);
+   
     linkButtonGain.onClick = [this](){unlink();};
     linkButtonGain.addListener(this);
+    addAndMakeVisible(linkButtonGain);
 
     // Gör två nya sliders och göm dom ifall linked/ byt ut
     
@@ -137,8 +142,8 @@ void StereoimagerAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (juce::Colour::fromFloatRGBA (0.08f, 0.08f, 0.08f, 1.0f));
-    
-   
+  //  g.fillAll (juce::Colour::fromFloatRGBA (1.0f, 1.0f, 1.0f, 1.0f));
+  
 }
 
 void StereoimagerAudioProcessorEditor::resized()
@@ -165,7 +170,7 @@ void StereoimagerAudioProcessorEditor::resized()
     // position 7 = level meters
     gainSliderRight.setBounds(sliderWidth * 8, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
     
-    linkButtonGain.setBounds(sliderWidth * 7.3, sliderHeight + topRow - heightMargin * 0.8, sliderWidth, heightMargin * 0.6 );
+    linkButtonGain.setBounds(sliderWidth * 7.3, sliderHeight + topRow + heightMargin * 0.1, sliderWidth, heightMargin * 0.6 );
 
     gainSliderLeftLinked.setBounds(sliderWidth * 6.5, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
     // position 7 = level meters
@@ -175,6 +180,7 @@ void StereoimagerAudioProcessorEditor::resized()
     
     vMeterRight.setBounds(sliderWidth * 7.8, heightMargin, sliderWidth * 0.4, sliderHeight + topRow - heightMargin - heightMargin);
 
+  
 
 }
 

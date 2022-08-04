@@ -31,6 +31,7 @@ public:
     void unlink();
     void link();
     void buttonClicked (juce::Button* button) override;
+    
  
 private:
     StereoimagerAudioProcessor& audioProcessor;
@@ -52,6 +53,7 @@ private:
     juce::Slider gainSliderRightLinked;
     juce::Label title;
 
+  //  juce::ScopedPointer<juce::Drawable> knob_image;
     
     enum class LinkState
     {
@@ -60,8 +62,10 @@ private:
     };
     
     LinkState linkState {LinkState::Link};
-    juce::TextButton linkButtonGain{};
-  
+   // juce::ImageButton linkButtonGain{};
+    juce::DrawableButton linkButtonGain{ "linkButtonGain", juce::DrawableButton::ButtonStyle::ImageOnButtonBackground };
+    
+
    
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> widthSliderAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> width2SliderAttach;

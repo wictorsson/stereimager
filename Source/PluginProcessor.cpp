@@ -121,9 +121,6 @@ void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterI
     {
     if( parameterID == "gainLinked")
     {
-    
-
-        
         gainLeftValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
                    gainRightValue.setTargetValue(juce::Decibels::decibelsToGain(newValue * 0.5));
       }
@@ -149,7 +146,6 @@ void StereoimagerAudioProcessor::parameterChanged(const juce::String& parameterI
     if (parameterID == "linkGain")
     {
         linkGainButton = newValue;
-  
     }
     
 }
