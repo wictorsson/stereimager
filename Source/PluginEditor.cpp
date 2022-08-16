@@ -124,7 +124,7 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
     addAndMakeVisible(vMeterRight);
     startTimerHz(24);
     
-    title.setText ("F.W Imager v1.0", juce::dontSendNotification);
+    title.setText ("F.W IMAGER v1.0", juce::dontSendNotification);
     title.setJustificationType(juce::Justification::left);
     title.setColour(0x1000281, juce::Colours::whitesmoke);
     title.setFont (juce::Font (10.0f));
@@ -148,36 +148,21 @@ void StereoimagerAudioProcessorEditor::paint (juce::Graphics& g)
 
 void StereoimagerAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
     auto widthMargin = getWidth() * 0.12;
     auto heightMargin = getHeight() * 0.1;
-  
-    
     auto topRow = (getHeight() - heightMargin * 2) * 0.4;
-    //Slider width - 8 objects
     auto sliderWidth = (getWidth() - heightMargin * 2) * 0.125;
     auto sliderHeight = getHeight() - topRow - heightMargin;
-    
-    title.setBounds(0, 0, 40, 40);
-    
+    title.setBounds(widthMargin * 0.1, heightMargin * 0.05, 80, 30);
     crossOverSlider.setBounds(widthMargin * 1.2, heightMargin * 1.2, sliderWidth * 4, sliderHeight * 0.2 );
-    
     widthBand1Slider.setBounds(widthMargin * 1.5, topRow, sliderWidth, sliderHeight );
     widthBand2Slider.setBounds(sliderWidth * 3.8, topRow, sliderWidth, sliderHeight);
-    
     gainSliderLeft.setBounds(sliderWidth * 6.5, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
-    // position 7 = level meters
     gainSliderRight.setBounds(sliderWidth * 8, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
-    
-    linkButtonGain.setBounds(sliderWidth * 7.3, sliderHeight + topRow + heightMargin * 0.1, sliderWidth, heightMargin * 0.6 );
-
+    linkButtonGain.setBounds(sliderWidth * 7.3, sliderHeight + topRow - heightMargin + linkButtonGain.getHeight()/2 , sliderWidth * 0.9, heightMargin * 0.6 );
     gainSliderLeftLinked.setBounds(sliderWidth * 6.5, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
-    // position 7 = level meters
     gainSliderRightLinked.setBounds(sliderWidth * 8, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
-    
     vMeterLeft.setBounds(sliderWidth * 7.3, heightMargin, sliderWidth * 0.4, sliderHeight + topRow - heightMargin - heightMargin);
-    
     vMeterRight.setBounds(sliderWidth * 7.8, heightMargin, sliderWidth * 0.4, sliderHeight + topRow - heightMargin - heightMargin);
 
   

@@ -80,7 +80,7 @@ void CustomCrossover::drawLinearSlider (juce::Graphics& g, int x, int y, int wid
       
         if (! isTwoVal)
         {
-            g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f));
+            g.setColour (juce::Colour::fromFloatRGBA(0.2941f, 0.4784f, 0.2784f, 1.0f));
             g.fillRoundedRectangle (juce::Rectangle<float> (static_cast<float> (thumbWidth) * 0.2, static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint), 3);
         }
 
@@ -112,3 +112,16 @@ void CustomCrossover::drawLinearSlider (juce::Graphics& g, int x, int y, int wid
     }
 }
 
+juce::Label* CustomCrossover::createSliderTextBox (juce::Slider& slider)
+{
+    auto* l = new juce::Label();
+
+    l->setJustificationType (juce::Justification::centred);
+    l->setColour (juce::Label::textColourId, slider.findColour (juce::Slider::textBoxTextColourId));
+    l->setColour (juce::Label::textWhenEditingColourId, slider.findColour (juce::Slider::textBoxTextColourId));
+    l->setColour (juce::Label::outlineWhenEditingColourId, juce::Colours::transparentWhite);
+    l->setInterceptsMouseClicks (false, false);
+    l->setFont (14.0f);
+
+    return l;
+}

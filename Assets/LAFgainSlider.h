@@ -22,6 +22,9 @@ public:
                            float sliderPos, float minSliderPos, float maxSliderPos,
                            const juce::Slider::SliderStyle, juce::Slider&) override;
     
+    juce::Label* createSliderTextBox (juce::Slider& slider) override;
+
+    
 private:
     std::string type;
     

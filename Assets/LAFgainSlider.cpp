@@ -27,7 +27,7 @@ void CustomGainSlider::drawLinearSlider (juce::Graphics& g, int x, int y, int wi
     if (slider.isBar())
     {
        //g.setColour (slider.findC olour (Slider::trackColourId));
-        g.setColour (juce::Colour::fromFloatRGBA(0.34f, 0.64f, 0.56f, 1.0f).darker(0.4f));
+        g.setColour (juce::Colour::fromFloatRGBA(0.2941f, 0.4784f, 0.2784f, 1.0f).darker(0.2f));
         g.fillRect (slider.isHorizontal() ? juce::Rectangle<float> (static_cast<float> (x), (float) y + 0.5f, sliderPos - (float) x, (float) height - 1.0f)
                                           : juce::Rectangle<float> ((float) x + 0.5f, sliderPos, (float) width - 1.0f, (float) y + ((float) height - sliderPos)));
     }
@@ -116,5 +116,20 @@ void CustomGainSlider::drawLinearSlider (juce::Graphics& g, int x, int y, int wi
             }
         }
     }
+}
+
+
+juce::Label* CustomGainSlider::createSliderTextBox (juce::Slider& slider)
+{
+    auto* l = new juce::Label();
+
+    l->setJustificationType (juce::Justification::centred);
+    l->setColour (juce::Label::textColourId, slider.findColour (juce::Slider::textBoxTextColourId));
+    l->setColour (juce::Label::textWhenEditingColourId, slider.findColour (juce::Slider::textBoxTextColourId));
+    l->setColour (juce::Label::outlineWhenEditingColourId, juce::Colours::transparentWhite);
+    l->setInterceptsMouseClicks (false, false);
+    l->setFont (14.0f);
+
+    return l;
 }
 
