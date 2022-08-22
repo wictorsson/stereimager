@@ -25,8 +25,6 @@ public:
     juce::Label* createSliderTextBox (juce::Slider& slider) override;
 
     
-private:
-    
     
 };
 

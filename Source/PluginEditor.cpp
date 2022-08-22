@@ -43,10 +43,7 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
     crossOverSlider.setSliderStyle(juce::Slider::LinearHorizontal);
     crossOverSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 50, 20);
     crossOverSlider.setLookAndFeel(&lafCrossOv);
-    
     addAndMakeVisible(crossOverSlider);
-    
-   // crossOverSlider.setLookAndFeel(&lafSlider);
     crossOverSlider.setDoubleClickReturnValue(true, 0.0f);
     crossoverSliderAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "crossover", crossOverSlider);
     
@@ -80,7 +77,6 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
     gainSliderLeft.setDoubleClickReturnValue(true, 0.0f);
     gainSliderLeftAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "gainLeft", gainSliderLeft);
     gainSliderLeft.setVisible(false);
-
 
     gainSliderRight.setSliderStyle(juce::Slider::LinearVertical);
     gainSliderRight.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
@@ -118,7 +114,6 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
     linkButtonGain.addListener(this);
     addAndMakeVisible(linkButtonGain);
 
-    // Gör två nya sliders och göm dom ifall linked/ byt ut
     
     addAndMakeVisible(vMeterLeft);
     addAndMakeVisible(vMeterRight);
@@ -134,7 +129,14 @@ StereoimagerAudioProcessorEditor::StereoimagerAudioProcessorEditor (Stereoimager
 
 StereoimagerAudioProcessorEditor::~StereoimagerAudioProcessorEditor()
 {
-    // destroy Look and feel here!!!
+    // avoid memory leak
+    widthBand1Slider.setLookAndFeel(nullptr);
+    widthBand2Slider.setLookAndFeel(nullptr);
+    crossOverSlider.setLookAndFeel(nullptr);
+    gainSliderLeft.setLookAndFeel(nullptr);
+    gainSliderRight.setLookAndFeel(nullptr);
+    gainSliderRightLinked.setLookAndFeel(nullptr);
+    gainSliderLeftLinked.setLookAndFeel(nullptr);
 }
 
 //==============================================================================
@@ -164,8 +166,6 @@ void StereoimagerAudioProcessorEditor::resized()
     gainSliderRightLinked.setBounds(sliderWidth * 8, heightMargin, sliderWidth, sliderHeight + topRow - heightMargin);
     vMeterLeft.setBounds(sliderWidth * 7.3, heightMargin, sliderWidth * 0.4, sliderHeight + topRow - heightMargin - heightMargin);
     vMeterRight.setBounds(sliderWidth * 7.8, heightMargin, sliderWidth * 0.4, sliderHeight + topRow - heightMargin - heightMargin);
-
-  
 
 }
 
